@@ -1,8 +1,3 @@
--- Шүдний эмнэлэг · B251940028 · Өдөр 2 · Алхам 04
--- 01–03-ыг ажиллуулсан ижил өгөгдлийн санд нэг удаа ажиллуул. Нэр, утас, дүн нь жишээ.
--- Үр дүнгээс patient=24, work_slot=7201, appointment=4800 гэж байгаа эсэхийг шалга.
-
--- Сургалтын зориулалттай зохиомол өгөгдөл, бодит хүний бүртгэл агуулаагүй.
 BEGIN;
 SET LOCAL search_path TO dental_clinic, public;
 
@@ -18,8 +13,6 @@ SELECT 'P' || lpad(g::text, 3, '0'),
        (1 + g % 15)::smallint, format('%s-р байр, %s тоот', 6 + g, 10 + g)
 FROM generate_series(1, 24) AS s(g)
 ORDER BY g;
-
--- 00-ээр эхлэх дугаарууд нь зөвхөн тестийн утга.
 INSERT INTO patient_phone (patient_id, phone)
 SELECT patient_id, '00' || lpad(patient_id::text, 6, '0') FROM patient
 UNION ALL
@@ -93,8 +86,6 @@ SELECT d.staff_id,
 FROM dentist AS d
 CROSS JOIN generate_series(0, 119) AS days(day_offset)
 CROSS JOIN generate_series(0, 3) AS slots(slot_number);
-
--- Транзакц болон бизнес дүрмийн туршилтад зориулсан сул слот.
 INSERT INTO work_slot (dentist_id, slot_start) VALUES (1, timestamp '2027-01-20 14:00');
 
 WITH numbered_slots AS (
@@ -167,8 +158,6 @@ SELECT b.patient_id, b.visit_no, a.slot_start + interval '1 day',
        b.bill - round(b.bill / 2), 'transfer'::payment_method
 FROM bills AS b JOIN appointment AS a USING (patient_id, visit_no)
 WHERE b.visit_no % 7 <> 0 AND b.visit_no % 6 = 0;
-
--- Шалгалт. Жишээ өгөгдлийн үндсэн мөрийн тоо.
 SELECT 'patient' AS table_name, count(*) AS row_count FROM patient
 UNION ALL SELECT 'work_slot', count(*) FROM work_slot
 UNION ALL SELECT 'appointment', count(*) FROM appointment
