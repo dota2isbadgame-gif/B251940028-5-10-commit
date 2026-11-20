@@ -1,7 +1,3 @@
--- Шүдний эмнэлэг · B251940028 · Өдөр 2 · Алхам 03
--- 01, 02-ын дараа нь ажиллуул. Үйлчилгээ, тариф, эмчилгээ, гадаргуу, төлбөрийг нэмнэ.
--- Гадаргуугийн FK нь тухайн үйлчлүүлэгчийн шүдийг заана. Үндсэн гадаргуугийн FK-г COMMIT дээр шалгана.
-
 BEGIN;
 SET LOCAL search_path TO dental_clinic, public;
 
@@ -21,8 +17,6 @@ CREATE TABLE service_price (
     fee numeric(12, 0) NOT NULL CHECK (fee > 0 AND fee <> 'NaN'::numeric),
     PRIMARY KEY (service_id, valid_from)
 );
-
--- Дугаар нь тухайн үйлчлүүлэгчийн үзлэг дотор хүчинтэй.
 CREATE TABLE treatment (
     patient_id integer NOT NULL,
     visit_no integer NOT NULL,
@@ -59,9 +53,6 @@ CREATE TABLE treatment_surface (
         AND (surface <> 'O' OR fdi % 10 >= 4)
     )
 );
-
--- Эмчилгээ болон үндсэн гадаргууг нэг транзакцаар хадгална.
--- COMMIT хийхэд эмчилгээ бүр дор хаяж нэг гадаргуутай байх ёстой.
 ALTER TABLE treatment ADD CONSTRAINT treatment_requires_primary_surface
     FOREIGN KEY (patient_id, visit_no, line_no, primary_fdi, primary_surface)
     REFERENCES treatment_surface (patient_id, visit_no, line_no, fdi, surface)
@@ -79,8 +70,6 @@ CREATE TABLE payment (
         REFERENCES appointment (patient_id, visit_no)
         ON UPDATE RESTRICT ON DELETE RESTRICT
 );
-
--- Шалгалт. Шүд, үзлэг, гадаргууг холбодог 3 FK-ийн нэр.
 SELECT c.conname AS constraint_name
 FROM pg_constraint AS c
 WHERE c.conrelid IN ('dental_clinic.treatment'::regclass,
